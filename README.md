@@ -9,6 +9,27 @@
 
 A Python Flask web app that analyzes any Spotify playlist. Log in with your Spotify account, paste a playlist link, and get a full breakdown: popularity scores, top artists, release decade timeline, track length distribution, explicit content stats, most popular tracks, hidden gems, and a detailed table of every track. Built using the Spotify Web API with OAuth authentication.
 
+## How to Use the Deployed App
+
+1. Visit https://genai-project1-pqgi.onrender.com (may take ~30 seconds to wake up on first visit)
+2. Click **Login with Spotify** and authorize the app
+3. Paste any Spotify playlist URL (e.g. `https://open.spotify.com/playlist/...`)
+4. Click **Analyze** to see the full breakdown
+
+### Important: New User Access
+
+This app uses the Spotify API in **Development Mode**, which means only pre-approved users can log in. If you get an error when logging in, your Spotify email needs to be added to the app's authorized users list.
+
+**To add a new user:**
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Select the app
+3. Click **Settings**
+4. Scroll to **User Management**
+5. Enter the new user's Spotify account email and click **Add user**
+6. The user can now log in (up to 25 users in dev mode)
+
+If you are a reviewer/instructor and cannot log in, please contact me so I can add your Spotify email.
+
 ## Features
 
 - Login with Spotify (OAuth 2.0 authentication)
@@ -26,7 +47,7 @@ A Python Flask web app that analyzes any Spotify playlist. Log in with your Spot
 
 - **Backend:** Python, Flask
 - **API:** Spotify Web API (via spotipy library)
-- **Auth:** Spotify OAuth 2.0 with PKCE
+- **Auth:** Spotify OAuth 2.0
 - **Deployment:** Render (gunicorn)
 
 ## Setup (Local Development)
@@ -56,11 +77,6 @@ python app.py
 
 Then open http://127.0.0.1:8080 in your browser.
 
-### 4. Usage
-
-1. Click **Login with Spotify** and authorize the app
-2. Paste any Spotify playlist URL (e.g. `https://open.spotify.com/playlist/...`)
-3. Click **Analyze** to see the full breakdown
 
 ## Deployment (Render)
 
