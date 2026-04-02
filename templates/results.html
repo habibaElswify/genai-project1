@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ playlist.name }} - Playlist Analysis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        a { color: #1db954; text-decoration: none; }
+        a:hover { color: #1ed760; }
+
+        .topbar {
+            background: #1a1a1a;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #282828;
+        }
+        .topbar h1 { font-size: 1.2rem; color: #1db954; }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Playlist header */
+        .playlist-header {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+            align-items: center;
+        }
+        .playlist-header img {
+            width: 200px; height: 200px;
+            border-radius: 12px; object-fit: cover;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .playlist-header .info h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .playlist-header .info p { color: #b3b3b3; margin-bottom: 0.3rem; }
+        @media (max-width: 600px) {
+            .playlist-header { flex-direction: column; align-items: flex-start; }
+            .playlist-header img { width: 150px; height: 150px; }
+        }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        .stat-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid #282828;
+        }
+        .stat-card .value {
+            font-size: 1.8rem; font-weight: 700; color: #1db954;
+        }
+        .stat-card .label {
+            color: #888; font-size: 0.8rem; margin-top: 0.3rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* Banner */
+        .mood-banner {
+            background: linear-gradient(135deg, #1a1a1a, #1db95415);
+            border: 1px solid #282828;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            text-align: center;
+        }
+        .mood-item .big { font-size: 2.5rem; }
+        .mood-item .title { font-size: 1.3rem; font-weight: 600; margin-top: 0.3rem; }
+        .mood-item .subtitle { color: #888; font-size: 0.85rem; }
+
+        /* Bar chart */
+        .bar-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid #282828;
+        }
+        .bar-section h3 { color: #1db954; margin-bottom: 1rem; }
+        .bar-row {
+            display: flex; align-items: center; margin-bottom: 0.6rem;
+        }
+        .bar-label { width: 130px; font-size: 0.85rem; color: #b3b3b3; }
+        .bar-track {
+            flex: 1; height: 20px; background: #282828;
+            border-radius: 10px; overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%; background: linear-gradient(90deg, #1db954, #1ed760);
+            border-radius: 10px;
+        }
+        .bar-value { width: 50px; text-align: right; font-size: 0.85rem; color: #b3b3b3; }
+
+        /* Sections */
+        .section { margin-bottom: 2.5rem; }
+        .section h3 { color: #1db954; margin-bottom: 1rem; font-size: 1.1rem; }
+
+        /* Artist tags */
+        .artist-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .artist-tag {
+            background: #282828; padding: 0.5rem 1rem;
+            border-radius: 50px; font-size: 0.9rem;
+        }
+        .artist-tag .count { color: #1db954; font-weight: 600; }
+
+        /* Decade tags */
+        .decade-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .decade-tag {
+            background: #282828; padding: 0.6rem 1.2rem;
+            border-radius: 10px; text-align: center;
+        }
+        .decade-tag .decade { font-weight: 700; color: #1db954; font-size: 1.1rem; }
+        .decade-tag .count { color: #888; font-size: 0.8rem; }
+
+        /* Track lists */
+        .track-list { display: grid; gap: 0.5rem; }
+        .track-item {
+            display: flex; align-items: center; gap: 1rem;
+            background: #1a1a1a; padding: 0.75rem 1rem;
+            border-radius: 8px; border: 1px solid #282828;
+        }
+        .track-item img {
+            width: 45px; height: 45px; border-radius: 4px; object-fit: cover;
+        }
+        .track-item .rank {
+            color: #555; font-weight: 700; font-size: 1.1rem;
+            width: 25px; text-align: center;
+        }
+        .track-item .track-info { flex: 1; }
+        .track-item .track-name { font-weight: 600; font-size: 0.95rem; }
+        .track-item .track-artist { color: #888; font-size: 0.8rem; }
+        .track-item .track-stat { color: #1db954; font-weight: 600; font-size: 0.9rem; }
+        .track-item .track-sub { color: #888; font-size: 0.75rem; }
+
+        /* Full track table */
+        .tracks-table-wrapper { overflow-x: auto; margin-bottom: 2rem; }
+        table {
+            width: 100%; border-collapse: collapse;
+            background: #1a1a1a; border-radius: 12px;
+            overflow: hidden; border: 1px solid #282828;
+        }
+        th {
+            background: #282828; padding: 0.75rem 1rem;
+            text-align: left; color: #1db954;
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        td {
+            padding: 0.6rem 1rem; border-bottom: 1px solid #1e1e1e; font-size: 0.9rem;
+        }
+        tr:hover td { background: #1e1e1e; }
+        .explicit-badge {
+            background: #888; color: #121212; font-size: 0.65rem;
+            padding: 0.15rem 0.35rem; border-radius: 3px; font-weight: 700;
+            vertical-align: middle; margin-left: 0.3rem;
+        }
+        .pop-bar {
+            width: 60px; height: 6px; background: #282828;
+            border-radius: 3px; display: inline-block;
+            vertical-align: middle; margin-left: 0.4rem;
+        }
+        .pop-bar-fill { height: 100%; background: #1db954; border-radius: 3px; }
+        footer { text-align: center; padding: 2rem; color: #444; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>Spotify Playlist Analyzer</h1>
+        <a href="/">&larr; Analyze Another</a>
+    </div>
+
+    <div class="container">
+        <!-- Playlist Header -->
+        <div class="playlist-header">
+            {% if playlist.image %}
+            <img src="{{ playlist.image }}" alt="{{ playlist.name }}">
+            {% endif %}
+            <div class="info">
+                <h2>{{ playlist.name }}</h2>
+                <p>by {{ playlist.owner }}</p>
+                {% if playlist.description %}<p>{{ playlist.description }}</p>{% endif %}
+                <p>{{ stats.total_tracks }} tracks &bull; {{ stats.total_duration_hr }} hrs ({{ stats.total_duration_min }} min) &bull; {{ playlist.followers }} followers</p>
+            </div>
+        </div>
+
+        <!-- Highlights Banner -->
+        <div class="mood-banner">
+            <div class="mood-item">
+                <div class="big">{{ stats.pop_icon }}</div>
+                <div class="title">{{ stats.pop_label }}</div>
+                <div class="subtitle">Avg Popularity: {{ stats.avg_popularity }}/100</div>
+            </div>
+            <div class="mood-item">
+                <div class="big">&#127908;</div>
+                <div class="title">{{ stats.unique_artists }} Artists</div>
+                <div class="subtitle">Unique artists in playlist</div>
+            </div>
+            <div class="mood-item">
+                <div class="big">&#127925;</div>
+                <div class="title">{{ stats.avg_duration_min }} min</div>
+                <div class="subtitle">Avg Track Length</div>
+            </div>
+            <div class="mood-item">
+                <div class="big">&#127383;</div>
+                <div class="title">{{ stats.explicit_pct }}% Explicit</div>
+                <div class="subtitle">{{ stats.explicit_count }} of {{ stats.total_tracks }} tracks</div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="value">{{ stats.total_tracks }}</div>
+                <div class="label">Tracks</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{ stats.total_duration_hr }}h</div>
+                <div class="label">Total Length</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{ stats.avg_popularity }}</div>
+                <div class="label">Avg Popularity</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{ stats.unique_artists }}</div>
+                <div class="label">Artists</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">{{ stats.explicit_count }}</div>
+                <div class="label">Explicit</div>
+            </div>
+        </div>
+
+        <!-- Popularity Distribution -->
+        <div class="bar-section">
+            <h3>Popularity Distribution</h3>
+            {% for range, count in stats.pop_distribution.items() %}
+            <div class="bar-row">
+                <span class="bar-label">{{ range }}</span>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (count / (stats.total_tracks or 1) * 100)|round|int }}%"></div>
+                </div>
+                <span class="bar-value">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Duration Distribution -->
+        <div class="bar-section">
+            <h3>Track Length Distribution</h3>
+            {% for label, count in stats.duration_dist.items() %}
+            <div class="bar-row">
+                <span class="bar-label">{{ label }}</span>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (count / (stats.total_tracks or 1) * 100)|round|int }}%"></div>
+                </div>
+                <span class="bar-value">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Decades -->
+        {% if stats.decades %}
+        <div class="section">
+            <h3>Release Decades</h3>
+            <div class="decade-list">
+                {% for decade, count in stats.decades %}
+                <div class="decade-tag">
+                    <div class="decade">{{ decade }}</div>
+                    <div class="count">{{ count }} track{{ 's' if count != 1 }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Top Artists -->
+        <div class="section">
+            <h3>Top Artists</h3>
+            <div class="artist-list">
+                {% for artist, count in stats.top_artists %}
+                <span class="artist-tag">{{ artist }} <span class="count">&times;{{ count }}</span></span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Most Popular Tracks -->
+        <div class="section">
+            <h3>Most Popular Tracks</h3>
+            <div class="track-list">
+                {% for t in stats.most_popular %}
+                <div class="track-item">
+                    <span class="rank">{{ loop.index }}</span>
+                    {% if t.image %}<img src="{{ t.image }}" alt="">{% endif %}
+                    <div class="track-info">
+                        <div class="track-name">{{ t.name }}{% if t.explicit %}<span class="explicit-badge">E</span>{% endif %}</div>
+                        <div class="track-artist">{{ t.artists }}</div>
+                    </div>
+                    <div>
+                        <div class="track-stat">{{ t.popularity }}/100</div>
+                        <div class="track-sub">popularity</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Least Popular (Hidden Gems) -->
+        <div class="section">
+            <h3>Hidden Gems (Least Popular)</h3>
+            <div class="track-list">
+                {% for t in stats.least_popular %}
+                <div class="track-item">
+                    <span class="rank">{{ loop.index }}</span>
+                    {% if t.image %}<img src="{{ t.image }}" alt="">{% endif %}
+                    <div class="track-info">
+                        <div class="track-name">{{ t.name }}{% if t.explicit %}<span class="explicit-badge">E</span>{% endif %}</div>
+                        <div class="track-artist">{{ t.artists }}</div>
+                    </div>
+                    <div>
+                        <div class="track-stat">{{ t.popularity }}/100</div>
+                        <div class="track-sub">popularity</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Longest Tracks -->
+        <div class="section">
+            <h3>Longest Tracks</h3>
+            <div class="track-list">
+                {% for t in stats.longest %}
+                <div class="track-item">
+                    <span class="rank">{{ loop.index }}</span>
+                    {% if t.image %}<img src="{{ t.image }}" alt="">{% endif %}
+                    <div class="track-info">
+                        <div class="track-name">{{ t.name }}</div>
+                        <div class="track-artist">{{ t.artists }}</div>
+                    </div>
+                    <div>
+                        <div class="track-stat">{{ (t.duration_ms / 60000)|round(1) }} min</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Newest Tracks -->
+        <div class="section">
+            <h3>Newest Releases</h3>
+            <div class="track-list">
+                {% for t in stats.newest %}
+                <div class="track-item">
+                    <span class="rank">{{ loop.index }}</span>
+                    {% if t.image %}<img src="{{ t.image }}" alt="">{% endif %}
+                    <div class="track-info">
+                        <div class="track-name">{{ t.name }}</div>
+                        <div class="track-artist">{{ t.artists }}</div>
+                    </div>
+                    <div>
+                        <div class="track-stat">{{ t.release_year }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- All Tracks Table -->
+        <div class="section">
+            <h3>All Tracks</h3>
+            <div class="tracks-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Year</th>
+                            <th>Duration</th>
+                            <th>Popularity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tracks %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ t.name }}{% if t.explicit %}<span class="explicit-badge">E</span>{% endif %}</td>
+                            <td>{{ t.artists }}</td>
+                            <td>{{ t.album }}</td>
+                            <td>{{ t.release_year }}</td>
+                            <td>{{ (t.duration_ms / 60000)|round(1) }}</td>
+                            <td>
+                                {{ t.popularity }}
+                                <span class="pop-bar"><span class="pop-bar-fill" style="width: {{ t.popularity }}%"></span></span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer>Built with Flask &amp; Spotify Web API</footer>
+</body>
+</html>

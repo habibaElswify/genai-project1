@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Playlist Analyzer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem 2rem;
+            max-width: 700px;
+        }
+        .hero h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #1db954, #1ed760);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            color: #b3b3b3;
+            font-size: 1.15rem;
+            line-height: 1.6;
+        }
+        .search-card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin: 2rem 1rem;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid #282828;
+        }
+        .search-card h2 {
+            color: #1db954;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid #282828;
+            border-radius: 50px;
+            background: #282828;
+            color: #fff;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #1db954;
+        }
+        .input-group input::placeholder { color: #6a6a6a; }
+        .btn {
+            padding: 0.9rem 2rem;
+            background: #1db954;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:hover { background: #1ed760; transform: scale(1.02); }
+        .error {
+            background: #e74c3c22;
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 700px;
+            margin: 2rem 1rem;
+            padding-bottom: 3rem;
+        }
+        @media (max-width: 600px) {
+            .features { grid-template-columns: 1fr; }
+            .input-group { flex-direction: column; }
+            .hero h1 { font-size: 2rem; }
+        }
+        .feature-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #282828;
+            text-align: center;
+        }
+        .feature-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .feature-card h3 { color: #1db954; font-size: 0.95rem; margin-bottom: 0.5rem; }
+        .feature-card p { color: #888; font-size: 0.85rem; }
+        footer {
+            padding: 2rem;
+            color: #444;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Spotify Playlist Analyzer</h1>
+        <p>Paste any public Spotify playlist link to uncover its vibe &mdash; mood, energy, danceability, top artists, and more.</p>
+    </div>
+
+    <div class="search-card">
+        <h2>Analyze a Playlist</h2>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        {% if logged_in %}
+        <form action="/analyze" method="post">
+            <div class="input-group">
+                <input type="text" name="playlist_url" placeholder="https://open.spotify.com/playlist/..." required>
+                <button type="submit" class="btn">Analyze</button>
+            </div>
+        </form>
+        <p style="margin-top: 1rem; text-align: center; color: #888; font-size: 0.85rem;">
+            Logged in to Spotify &bull; <a href="/logout" style="color: #1db954;">Logout</a>
+        </p>
+        {% else %}
+        <div style="text-align: center;">
+            <a href="/login" class="btn" style="display: inline-block; text-decoration: none; font-size: 1.1rem; padding: 1rem 2.5rem;">
+                Login with Spotify to Start
+            </a>
+            <p style="margin-top: 1rem; color: #888; font-size: 0.85rem;">
+                We need access to read your playlists. No data is stored.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <div class="icon">&#127925;</div>
+            <h3>Mood Analysis</h3>
+            <p>See if your playlist is happy, chill, moody, or dark</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">&#9889;</div>
+            <h3>Energy &amp; Tempo</h3>
+            <p>Average BPM, energy level, and danceability scores</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">&#127908;</div>
+            <h3>Top Artists</h3>
+            <p>See which artists dominate your playlist</p>
+        </div>
+    </div>
+
+    <footer>Built with Flask &amp; Spotify Web API</footer>
+</body>
+</html>
