@@ -3,7 +3,7 @@
 **NetID:** helswify
 **Name:** Habiba Elswify
 **GitHub Repository:** https://github.com/habibaElswify/genai-project1
-**Deployed Site:** *(optional)*
+**Deployed Site:** https://genai-project1-pqgi.onrender.com
 
 ## Idea
 
