@@ -214,6 +214,13 @@
                 <div class="title">{{ stats.unique_artists }} Artists</div>
                 <div class="subtitle">Unique artists in playlist</div>
             </div>
+            {% if stats.has_popularity %}
+            <div class="mood-item">
+                <div class="big">&#11088;</div>
+                <div class="title">{{ stats.pop_label }}</div>
+                <div class="subtitle">Avg Popularity: {{ stats.avg_popularity }}/100</div>
+            </div>
+            {% endif %}
             <div class="mood-item">
                 <div class="big">&#9201;</div>
                 <div class="title">{{ stats.avg_duration_min }} min</div>
@@ -236,6 +243,12 @@
                 <div class="value">{{ stats.total_duration_hr }}h</div>
                 <div class="label">Total Length</div>
             </div>
+            {% if stats.has_popularity %}
+            <div class="stat-card">
+                <div class="value">{{ stats.avg_popularity }}</div>
+                <div class="label">Avg Popularity</div>
+            </div>
+            {% endif %}
             <div class="stat-card">
                 <div class="value">{{ stats.unique_artists }}</div>
                 <div class="label">Artists</div>
@@ -244,11 +257,23 @@
                 <div class="value">{{ stats.explicit_count }}</div>
                 <div class="label">Explicit</div>
             </div>
-            <div class="stat-card">
-                <div class="value">{{ stats.avg_duration_min }}m</div>
-                <div class="label">Avg Length</div>
-            </div>
         </div>
+
+        {% if stats.has_popularity %}
+        <!-- Popularity Distribution -->
+        <div class="bar-section">
+            <h3>Popularity Distribution</h3>
+            {% for range, count in stats.pop_distribution.items() %}
+            <div class="bar-row">
+                <span class="bar-label">{{ range }}</span>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (count / (stats.total_tracks or 1) * 100)|round|int }}%"></div>
+                </div>
+                <span class="bar-value">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <!-- Duration Distribution -->
         <div class="bar-section">
@@ -288,6 +313,50 @@
                 {% endfor %}
             </div>
         </div>
+
+        {% if stats.has_popularity %}
+        <!-- Most Popular Tracks -->
+        <div class="section">
+            <h3>Most Popular Tracks</h3>
+            <div class="track-list">
+                {% for t in stats.most_popular %}
+                <div class="track-item">
+                    <span class="rank">{{ loop.index }}</span>
+                    {% if t.image %}<img src="{{ t.image }}" alt="">{% endif %}
+                    <div class="track-info">
+                        <div class="track-name">{{ t.name }}{% if t.explicit %}<span class="explicit-badge">E</span>{% endif %}</div>
+                        <div class="track-artist">{{ t.artists }}</div>
+                    </div>
+                    <div>
+                        <div class="track-stat">{{ t.popularity }}/100</div>
+                        <div class="track-sub">popularity</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Hidden Gems -->
+        <div class="section">
+            <h3>Hidden Gems (Least Popular)</h3>
+            <div class="track-list">
+                {% for t in stats.least_popular %}
+                <div class="track-item">
+                    <span class="rank">{{ loop.index }}</span>
+                    {% if t.image %}<img src="{{ t.image }}" alt="">{% endif %}
+                    <div class="track-info">
+                        <div class="track-name">{{ t.name }}{% if t.explicit %}<span class="explicit-badge">E</span>{% endif %}</div>
+                        <div class="track-artist">{{ t.artists }}</div>
+                    </div>
+                    <div>
+                        <div class="track-stat">{{ t.popularity }}/100</div>
+                        <div class="track-sub">popularity</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Top Albums -->
         <div class="section">
@@ -372,6 +441,7 @@
                             <th>Album</th>
                             <th>Year</th>
                             <th>Duration</th>
+                            {% if stats.has_popularity %}<th>Popularity</th>{% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -383,6 +453,12 @@
                             <td>{{ t.album }}</td>
                             <td>{{ t.release_year }}</td>
                             <td>{{ (t.duration_ms / 60000)|round(1) }}</td>
+                            {% if stats.has_popularity %}
+                            <td>
+                                {{ t.popularity }}
+                                <span class="pop-bar"><span class="pop-bar-fill" style="width: {{ t.popularity }}%"></span></span>
+                            </td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -64,6 +64,7 @@ def get_playlist_data(sp, playlist_id):
                 "artist_list": [a["name"] for a in track.get("artists", [])],
                 "album": track.get("album", {}).get("name", "Unknown"),
                 "duration_ms": track.get("duration_ms", 0),
+                "popularity": 0,
                 "explicit": track.get("explicit", False),
                 "release_year": release_year,
                 "image": track["album"]["images"][0]["url"] if track.get("album", {}).get("images") else None,
@@ -73,17 +74,60 @@ def get_playlist_data(sp, playlist_id):
         else:
             break
 
+    # Fetch popularity via sp.tracks() endpoint
+    track_ids = [t["id"] for t in tracks]
+    for i in range(0, len(track_ids), 50):
+        batch = track_ids[i:i + 50]
+        full_tracks = sp.tracks(batch).get("tracks", [])
+        for j, ft in enumerate(full_tracks):
+            if ft and ft.get("popularity") is not None:
+                tracks[i + j]["popularity"] = ft["popularity"]
+
     n = len(tracks) or 1
 
     total_duration_ms = sum(t["duration_ms"] for t in tracks)
+    has_popularity = any(t["popularity"] > 0 for t in tracks)
     stats = {
         "total_tracks": len(tracks),
         "total_duration_min": round(total_duration_ms / 60000, 1),
         "total_duration_hr": round(total_duration_ms / 3600000, 1),
+        "avg_popularity": round(sum(t["popularity"] for t in tracks) / n, 1) if has_popularity else None,
         "avg_duration_min": round((total_duration_ms / n) / 60000, 2),
         "explicit_count": sum(1 for t in tracks if t["explicit"]),
         "explicit_pct": round(sum(1 for t in tracks if t["explicit"]) / n * 100, 1),
+        "has_popularity": has_popularity,
     }
+
+    # Popularity distribution (only if data available)
+    if has_popularity:
+        pop_ranges = {"0-20": 0, "21-40": 0, "41-60": 0, "61-80": 0, "81-100": 0}
+        for t in tracks:
+            p = t["popularity"]
+            if p <= 20:
+                pop_ranges["0-20"] += 1
+            elif p <= 40:
+                pop_ranges["21-40"] += 1
+            elif p <= 60:
+                pop_ranges["41-60"] += 1
+            elif p <= 80:
+                pop_ranges["61-80"] += 1
+            else:
+                pop_ranges["81-100"] += 1
+        stats["pop_distribution"] = pop_ranges
+
+        avg_pop = stats["avg_popularity"]
+        if avg_pop >= 75:
+            stats["pop_label"] = "Mainstream Hits"
+        elif avg_pop >= 50:
+            stats["pop_label"] = "Well-Known"
+        elif avg_pop >= 25:
+            stats["pop_label"] = "Under the Radar"
+        else:
+            stats["pop_label"] = "Deep Cuts"
+
+        sorted_by_pop = sorted(tracks, key=lambda t: -t["popularity"])
+        stats["most_popular"] = sorted_by_pop[:5]
+        stats["least_popular"] = sorted_by_pop[-5:][::-1] if len(sorted_by_pop) >= 5 else sorted_by_pop[::-1]
 
     # Top artists by frequency
     artist_count = Counter()
