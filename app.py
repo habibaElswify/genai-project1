@@ -74,6 +74,18 @@ def get_playlist_data(sp, playlist_id):
         else:
             break
 
+    # Fetch popularity by getting full track details in batches of 50
+    track_ids = [t["id"] for t in tracks]
+    for i in range(0, len(track_ids), 50):
+        batch = track_ids[i:i + 50]
+        try:
+            full_tracks = sp.tracks(batch).get("tracks", [])
+            for j, ft in enumerate(full_tracks):
+                if ft and "popularity" in ft:
+                    tracks[i + j]["popularity"] = ft["popularity"]
+        except Exception:
+            pass
+
     n = len(tracks) or 1
 
     total_duration_ms = sum(t["duration_ms"] for t in tracks)
